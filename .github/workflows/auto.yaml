@@ -3,7 +3,7 @@ name: Generate and Add SDK
 on:
   push:
     branches:
-      - main
+      - master
 
   
 env:
