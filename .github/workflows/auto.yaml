@@ -1,0 +1,170 @@
+name: Generate and Add SDK
+
+on:
+  push:
+    branches:
+      - main
+
+  
+env:
+   TOKEN: ${secrets.sdk}
+   
+jobs:
+  generate_and_add_sdk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install OpenAPI Generator
+        run: npm install -g @openapitools/openapi-generator-cli@latest
+      
+      - name: Configure Git for SDK
+        run: |
+          git config --global user.email "ishaaidayatullah19@siesgst.ac.in"
+          git config --global user.name "Ishaa-23"
+
+      - name: Delete Existing SDK
+        run: |
+             rm -rf ${{ github.workspace }}/gosdk/*
+            
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Delete GOSDK folder content"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      
+    
+      - name: Generate GO-SDK
+        run: |
+          openapi-generator-cli generate --verbose -i combined.yaml -g go -o ${{ github.workspace }}/gosdk --package-name EmployeeAPI 
+          
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Committing Go sdk to folder"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+     
+        
+      - name: Delete go.mod
+        run: |
+          rm -f ${{ github.workspace }}/gosdk/go.mod
+          cd gosdk
+          go mod init github.com/Ishaa-23/Go-Package
+         
+             
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Renaming github generic"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+    
+      
+      - name: Push gosdk to Go-Package
+        run: |
+          version=$(cat version_files/go.txt)
+          cd ${{ github.workspace }}/gosdk
+          git init
+          git add .
+          git commit -m "Push go-sdk contents from Automate repository"
+          git branch -M main
+          git remote add origin https://${{ secrets.sdk }}@github.com/Ishaa-23/Go-Package.git
+          git tag -a $version -m "Releasing latest version"
+          git push --force origin main
+          git push origin --tags
+      
+     
+      - name: Deleting existing java sdk
+        run: |
+           rm -rf ${{ github.workspace }}/javasdk/*
+      
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Delete Java-SDK folder content"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      - name: Generate Java-SDK
+        run: |
+          openapi-generator-cli generate --verbose -i combined.yaml -g java -o ${{ github.workspace }}/javasdk --package-name EmployeeAPI
+          
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Committing Java sdk to folder"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      - name: Modifying pom.xml
+        run: |
+              version_java=$(cat version_files/java.txt)
+              DISTRIBUTION_MANAGEMENT=''' 
+              <distributionManagement>
+                <repository>
+                <id>github</id>
+                <name>GitHub Packages</name>
+                <url>https://maven.pkg.github.com/Ishaa-23/Java_Package</url>
+                </repository>
+              </distributionManagement> '''
+              cd javasdk
+             
+              awk -v var="$DISTRIBUTION_MANAGEMENT" 'NR==10{print var} 1' pom.xml > pom.xml.new && mv pom.xml.new pom.xml
+              cat pom.xml
+              sed -i "5s/openapi-java-client/employee/" pom.xml
+              sed -i "s/openapi-java-client/employee/" README.md
+              sed -i '8s/<version>.*<\/version>/<version>${{version_java}}<\/version>/' pom.xml
+              #change version
+
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Made changes to javasdk"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      - name: Replace maven.yml with publish-java.yml content
+        run: |
+          cat publish-java.yml > javasdk/.github/workflows/maven.yml
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Made changes to maven.yml"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      - name: Pushing java sdk to Java-Package repo
+        run: |
+          cd ${{ github.workspace }}/javasdk
+          git init
+          git add .
+          git commit -m "Push java-sdk contents from Automate repository"
+          git branch -M main
+          git remote add origin https://${{ secrets.sdk }}@github.com/Ishaa-23/Java_Package.git
+          git push --force origin main
+         
+
+
+     
+     
