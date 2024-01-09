@@ -1,4 +1,4 @@
-# Go API client for EmployeeAPI
+# Go API client for Employee
 
 Endpoints of CRUD of employee and displaying results of student.
 
