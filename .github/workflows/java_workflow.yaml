@@ -5,10 +5,11 @@ on:
     branches:
       -  main
     paths:
-      - 'combined.yaml'
+      - 'version_files/java.txt'
   
 env:
    TOKEN: ${secrets.sdk}
+   
    
 jobs:
   generate_and_add_sdk:
@@ -68,8 +69,10 @@ jobs:
              
               awk -v var="$DISTRIBUTION_MANAGEMENT" 'NR==10{print var} 1' pom.xml > pom.xml.new && mv pom.xml.new pom.xml
               cat pom.xml
+              version=$(cat version_files/java.txt)
               sed -i "5s/openapi-java-client/employee/" pom.xml
               sed -i "s/openapi-java-client/employee/" README.md
+              sed -i '8s/<version>.*<\/version>/<version>${{ version }}<\/version>/' pom.xml
               
 
       - name: Committing
