@@ -5,7 +5,7 @@ on:
     branches:
       -  main
     paths:
-      - 'combined.yaml'
+      - 'version_files/go.txt'
   
 env:
    TOKEN: ${secrets.sdk}
