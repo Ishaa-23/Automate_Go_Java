@@ -57,8 +57,7 @@ jobs:
           fi
       - name: Modifying pom.xml
         run: |
-              
-              DISTRIBUTION_MANAGEMENT=''' 
+           DISTRIBUTION_MANAGEMENT=''' 
               <distributionManagement>
                 <repository>
                 <id>github</id>
@@ -72,7 +71,7 @@ jobs:
               cat pom.xml
               sed -i "5s/openapi-java-client/employee/" pom.xml
               sed -i "s/openapi-java-client/employee/" README.md
-              sed -i '8s/<version>.*<\/version>/<version>${{ version }}<\/version>/' pom.xml
+              sed -i '8s/<version>.*<\/version>/<version>${{version}}<\/version>/' pom.xml
               
 
       - name: Committing
