@@ -1,4 +1,4 @@
-name: Generate and Add SDK
+name: Generate Go SDK and publishing package
 
 on:
   push:
@@ -90,6 +90,6 @@ jobs:
           version=$(cat version_files/go.txt)
           cd gosdk
           git tag -a $version -m "Releasing latest version"
-          git push origin --tag
+          git push origin --tags
      
       
