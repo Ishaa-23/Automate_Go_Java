@@ -3,8 +3,9 @@ name: Generate and Add SDK
 on:
   push:
     branches:
-      - master
-
+      -  main
+    paths:
+      - 'combined.yaml'
   
 env:
    TOKEN: ${secrets.sdk}
@@ -115,7 +116,7 @@ jobs:
           fi
       - name: Modifying pom.xml
         run: |
-          
+              version=$(cat version_files/java.txt)
               DISTRIBUTION_MANAGEMENT=''' 
               <distributionManagement>
                 <repository>
@@ -130,8 +131,7 @@ jobs:
               cat pom.xml
               sed -i "5s/openapi-java-client/employee/" pom.xml
               sed -i "s/openapi-java-client/employee/" README.md
-              version=$(cat version_files/java.txt)
-              sed -i '8s/<version>.*<\/version>/<version>${{version}}<\/version>/' pom.xml
+              sed -i '8s/<version>.*<\/version>/<version>${version}<\/version>/' pom.xml
               #change version
 
       - name: Committing
@@ -145,7 +145,7 @@ jobs:
           fi
       - name: Replace maven.yml with publish-java.yml content
         run: |
-          cat publish-java.yaml > javasdk/.github/workflows/maven.yml
+          cat publish-java.yml > javasdk/.github/workflows/maven.yml
       - name: Committing
         run: |
           if [ -n "$(git status --porcelain)" ]; then
