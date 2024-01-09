@@ -9,7 +9,7 @@ on:
   
 env:
    TOKEN: ${secrets.sdk}
-   version: $(cat version_files/java.txt)
+   
    
    
 jobs:
@@ -55,6 +55,9 @@ jobs:
           else
             echo "No changes to commit."
           fi
+      - name: Read version from java.txt
+        id: read_version
+        run: echo "::set-output name=version::$(cat version_files/java.txt)"
       - name: Modifying pom.xml
         run: |
            DISTRIBUTION_MANAGEMENT=''' 
@@ -71,7 +74,7 @@ jobs:
               cat pom.xml
               sed -i "5s/openapi-java-client/employee/" pom.xml
               sed -i "s/openapi-java-client/employee/" README.md
-              sed -i '8s/<version>.*<\/version>/<version>${{version}}<\/version>/' pom.xml
+              sed -i '8s/<version>.*<\/version>/<version>${{steps.read_version.outputs.version}}<\/version>/' pom.xml
               
 
       - name: Committing
