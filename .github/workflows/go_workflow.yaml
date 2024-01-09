@@ -1,0 +1,89 @@
+name: Generate and Add SDK
+
+on:
+  push:
+    branches:
+      -  main
+    paths:
+      - 'combined.yaml'
+  
+env:
+   TOKEN: ${secrets.sdk}
+   
+jobs:
+  generate_and_add_sdk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install OpenAPI Generator
+        run: npm install -g @openapitools/openapi-generator-cli@latest
+      
+      - name: Configure Git for SDK
+        run: |
+          git config --global user.email "ishaaidayatullah19@siesgst.ac.in"
+          git config --global user.name "Ishaa-23"
+
+      - name: Delete Existing SDK
+        run: |
+             rm -rf ${{ github.workspace }}/gosdk/*
+            
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Delete GOSDK folder content"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+      
+    
+      - name: Generate GO-SDK
+        run: |
+          openapi-generator-cli generate --verbose -i combined.yaml -g go -o ${{ github.workspace }}/gosdk --package-name EmployeeAPI 
+          
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Committing Go sdk to folder"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+     
+        
+      - name: Delete go.mod
+        run: |
+          rm -f ${{ github.workspace }}/gosdk/go.mod
+          cd gosdk
+          go mod init github.com/Ishaa-23/Go-Package
+         
+             
+      - name: Committing
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --all
+            git commit -m "Renaming github generic"
+            git push origin main
+          else
+            echo "No changes to commit."
+          fi
+    
+      
+      - name: Push gosdk to Go-Package
+        run: |
+          version=$(cat version_files/go.txt)
+          cd ${{ github.workspace }}/gosdk
+          git init
+          git add .
+          git commit -m "Push go-sdk contents from Automate repository"
+          git branch -M main
+          git remote add origin https://${{ secrets.sdk }}@github.com/Ishaa-23/Go-Package.git
+          git tag -a $version -m "Releasing latest version"
+          git push --force origin main
+          git push origin --tags
+      
